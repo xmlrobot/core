@@ -4,6 +4,7 @@ public abstract class AbstractListener implements Listener {
 	
 	private static final long serialVersionUID = 3811280142467995386L;
 	
+	//attributes
 	/**
 	 * The parity
 	 */
@@ -14,6 +15,7 @@ public abstract class AbstractListener implements Listener {
 	 */
 	private int eventType;
 	
+	//properties
 	@Override
 	public abstract String getName();
 
@@ -53,7 +55,7 @@ public abstract class AbstractListener implements Listener {
 		this.parity = parity;
 	}
 
-	/*LISTENERS*/
+	//event listeners
 	@Override
 	public void addListener(Listener listener) {
 		
@@ -64,7 +66,7 @@ public abstract class AbstractListener implements Listener {
 		
 	}
 	
-	/*EVENT*/
+	//event
 	@Override
 	public void event(Object sender, Argument e) {
 		triggerEvent(e);
@@ -74,7 +76,7 @@ public abstract class AbstractListener implements Listener {
 		
 	}
 
-	/*THREADING*/
+	//concurrence
 	@Override
 	public void execute(Runnable command) {
 		try {
@@ -102,7 +104,7 @@ public abstract class AbstractListener implements Listener {
 		return new Thread(r);
 	}
 
-	/*OBJECT*/
+	//object
 	@Override
 	public Listener clone() {
 		try {
@@ -119,7 +121,7 @@ public abstract class AbstractListener implements Listener {
 		return this == obj;
 	}
 	
-	/*CREATE METHOD*/
+	//create methods
 	/**
 	 * Creates new object of type X with the given arguments.
 	 * @param <X> the parameter type of the returned object
