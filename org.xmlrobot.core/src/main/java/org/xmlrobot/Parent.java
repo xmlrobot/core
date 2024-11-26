@@ -1,5 +1,5 @@
 package org.xmlrobot;
 
-public class Hyperspace {
+public class Parent {
 
 }
