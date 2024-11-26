@@ -1,5 +1,10 @@
 package org.xmlrobot;
 
-public class Child {
+import org.xmlrobot.genesis.Chain;
+
+public abstract class Child<V,K>
+	extends Document<V,K> implements Chain<V,K> {
+
+	private static final long serialVersionUID = 7345791483077375936L;
 
 }
