@@ -1,89 +1,129 @@
 package org.xmlrobot;
 
-public abstract class XML 
-	extends Object implements Entity {
+import org.xmlrobot.numbers.Set;
 
-	private static final long serialVersionUID = 5883267790321046625L;
+import java.util.Iterator;
 
-	//attributes
+import org.xmlrobot.numbers.AbstractSet;
+
+public abstract class XML
+	extends Message implements Listener {
+	
+	private static final long serialVersionUID = 3811280142467995386L;
+	
 	/**
-	 * The parity
+	 * The event type
 	 */
-	private Parity parity;
-
+	private int eventType;
+	
+	/**
+	 * The listeners set
+	 */
+	private Set<Listener> listeners;
+	
 	//properties
 	@Override
-	public Parity getParity() {
-		return parity;
+	public int getEventType() {
+		return eventType;
 	}
 	@Override
-	public void setParity(Parity parity) {
-		this.parity = parity;
+	public void setEventType(int eventType) {
+		this.eventType = eventType;
+		sendEvent(new Event(this, eventType));
 	}
-	@Override
-	public abstract String getName();
 	
-	public XML() {
-		this.parity = Parity.YY;
-	}
-	public XML(Parity parity) {
-		this.parity = parity;
-	}
-
-	//object
-	@Override
-	public Entity clone() {
-		try {
-			Entity entity = getClass().getConstructor().newInstance();
-			entity.setParity(parity);
-			return entity;
-		} catch (Throwable t) {
-			throw new Error("org.xmlrobot.OrientedObject: clone exception.", t);
-		}
-	}
-	@Override
-	public final boolean equals(Object obj) {
-		return this == obj;
-	}
-
-	//concurrence
-	@Override
-	public void execute(Runnable command) {
-		try {
-			newThread(command).start();
-		}
-		catch (Throwable t) {
-			throw new Error(t);
-		}
-	}
-	@Override
-	public Thread newThread(Runnable r) {
-		return new Thread(r);
-	}
-	@Override
-	public abstract void run();
-	
-	//create methods
 	/**
-	 * Creates new object of type X with the given arguments.
-	 * @param <X> the parameter type of the returned object
-	 * @param type the {@link Class} of the object.
-	 * @param object the arguments of the construction of the object
-	 * @return the new <X> instance
+	 * {@link XML} default class constructor
 	 */
-	protected static <X> X create(Class<X> type, Object... arguments) {
-		try {
-			return type.getDeclaredConstructor(getClasses(arguments)).newInstance(arguments);
+	public XML() {
+		super();
+		this.eventType = GENESIS;
+	}
+	/**
+	 * {@link XML} class constructor.
+	 * @param parity {@link Parity} the parity
+	 */
+	public XML(Parity parity) {
+		super(parity);
+		this.eventType = GENESIS;
+	}
+	
+	//event listeners
+	@Override
+	public void addListener(Listener listener) {
+		if(listeners == null) {
+			listeners = new XML.Listeners();
 		}
-		catch(Throwable t) {
-			throw new Error(t);
+		listeners.add(listener);
+	}
+	@Override
+	public void removeListener(Listener listener) {
+		if(listeners == null) {
+			return;
+		}
+		listeners.remove(listener);
+	}
+	//event
+	@Override
+	public void onEventReceived(Object sender, Event e) {
+		sendEvent(e);
+	}
+	protected void sendEvent(Event e) {
+		if(listeners != null) {
+			Iterator<Listener> iterator = listeners.iterator();
+			while(iterator.hasNext()) {
+				iterator.next().onEventReceived(this, e);
+			}
 		}
 	}
-	private static Class<?>[] getClasses(Object... objects) {
-		Class<?>[] classes = new Class<?>[objects.length];
-		for(int i = 0; i < objects.length; i++) {
-			classes[i] = objects[i].getClass();
+	//runnable
+	@Override
+	public void run() {
+		switch (getEventType()) {
+		case LISTEN:
+			setEventType(TRANSFER);
+			break;
+		default:
+			setEventType(LISTEN);
+			break;
 		}
-		return classes;
+	}
+	/**
+	 * The {@link java.util.Set} listeners.
+	 */
+	public class Listeners extends AbstractSet<Listener> {
+
+		private static final long serialVersionUID = 414566453327042951L;
+		
+		@Override
+		public String getName() {
+			return XML.this.getName();
+		}
+		
+		public Listeners() {
+			super();
+		}
+		public Listeners(Listeners parent, Listener element) {
+			super(parent, element);
+			setElement(element);
+		}
+		
+		@Override
+		public boolean add(Listener e) {
+			if(isEmpty()) {
+				setElement(e);
+				return true;
+			} else if(!contains(e)) {
+				create(getClass(), getParent(), e);
+				return true;
+			} else return false;
+		}
+		static <X> X create(Class<X> type, Object parent, Listener element) {
+			try {
+				return type.getDeclaredConstructor(parent.getClass(), Listener.class).newInstance(parent, element);
+			} catch(Throwable t) {
+				throw new Error(t);
+			}
+		}
 	}
 }

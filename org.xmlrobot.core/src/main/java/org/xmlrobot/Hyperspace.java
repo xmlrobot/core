@@ -5,12 +5,12 @@ import org.xmlrobot.time.Recursion;
 
 public abstract class Hyperspace
 	<K extends Recursion<K,V>,V extends Recursion<V,K>>
-		extends Document implements Recursion<K,V> {
+		extends XML implements Recursion<K,V> {
 
 	private static final long serialVersionUID = 1499027297977083677L;
 
-	K parent;
-	V child;
+	private K parent;
+	private V child;
 	
 	@Override
 	public K getParent() {
@@ -77,6 +77,9 @@ public abstract class Hyperspace
 		call().setParent(parent.call());
 		get().setParent(child);
 	}
+	
+	@Override
+	public abstract Recursion.Comparator<K,V> comparator();
 
 	@Override
 	public abstract int compareTo(V o);
@@ -122,17 +125,17 @@ public abstract class Hyperspace
 	protected final class ParentEnumerator implements Enumerator<K> {
 
 		/**
-		 * The current time-listener.
+		 * The current recursion.
 		 */
 		K current;
 
 		/**
-		 * The next time-listener.
+		 * The next recursion.
 		 */
 		K next;
 		
 		/**
-		 * If this recursor has next time-listener.
+		 * If this recursor has next recursion.
 		 */
 		boolean hasNext;
 
@@ -140,12 +143,11 @@ public abstract class Hyperspace
 			next = current = past;
 			hasNext = true;
 		}
-
+		
 		@Override
 		public boolean hasMoreElements() {
 			return hasNext;
 		}
-
 		@Override
 		public K nextElement() {
 			K parent = next;
@@ -157,7 +159,6 @@ public abstract class Hyperspace
 				hasNext = true;
 			return parent;
 		}
-
 		@Override
 		public void remove() {
 			K parent = next;
@@ -168,5 +169,25 @@ public abstract class Hyperspace
 			} else
 				hasNext = false;
 		}
+	}
+	protected abstract class Generator implements Recursion.Comparator<K,V> {
+		
+		V source;
+		
+		@Override
+		public V source() {
+			return source;
+		}
+		
+		public Generator() {
+			super();
+		}
+		public Generator(V source) {
+			super();
+			this.source = source;
+		}
+		
+		@Override
+		public abstract int compare(K parent, V child);
 	}
 }

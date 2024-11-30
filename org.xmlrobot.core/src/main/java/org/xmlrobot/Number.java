@@ -6,7 +6,7 @@ import org.xmlrobot.numbers.Enumerator;
 import org.xmlrobot.time.Recurrence;
 
 public abstract class Number<K extends Recurrence<K>>
-	extends XML implements Recurrence<K>, Serializable {
+	extends Message implements Recurrence<K>, Serializable {
 
 	private static final long serialVersionUID = -3609491763992988642L;
 	
