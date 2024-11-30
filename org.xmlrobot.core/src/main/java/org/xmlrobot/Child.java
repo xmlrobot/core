@@ -139,79 +139,76 @@ public abstract class Child<V,K>
 	@Deprecated
 	public Object[] toArray() {
 		// Estimate size of array; be prepared to see more or fewer elements
-        Object[] r = new Object[size()];
-        Enumerator<Entry<V,K>> en = enumerator();
-        for (int i = 0; i < r.length; i++) {
-            if (!en.hasMoreElements()) // fewer elements than expected
-                return Arrays.copyOf(r, i);
-            r[i] = en.nextElement();
-        }
-        return en.hasMoreElements() ? finishToArray(r, en) : r;
+		Object[] r = new Object[size()];
+		Enumerator<Entry<V,K>> en = enumerator();
+		for (int i = 0; i < r.length; i++) {
+			if (!en.hasMoreElements()) // fewer elements than expected
+				return Arrays.copyOf(r, i);
+			r[i] = en.nextElement();
+		}
+		return en.hasMoreElements() ? finishToArray(r, en) : r;
 	}
-
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	public <T> T[] toArray(T[] a) {
-		 // Estimate size of array; be prepared to see more or fewer elements
-        int size = size();
-        T[] r = a.length >= size ? a :
-                  (T[])java.lang.reflect.Array
-                  .newInstance(a.getClass().getComponentType(), size);
-        Enumerator<Entry<V,K>> en = enumerator();
-
-        for (int i = 0; i < r.length; i++) {
-            if (! en.hasMoreElements()) { // fewer elements than expected
-                if (a == r) {
-                    r[i] = null; // null-terminate
-                } else if (a.length < i) {
-                    return Arrays.copyOf(r, i);
-                } else {
-                    System.arraycopy(r, 0, a, 0, i);
-                    if (a.length > i) {
-                        a[i] = null;
-                    }
-                }
-                return a;
-            }
-            r[i] = (T)en.nextElement();
-        }
-        // more elements than expected
-        return en.hasMoreElements() ? finishToArray(r, en) : r;
+		// Estimate size of array; be prepared to see more or fewer elements
+		int size = size();
+		T[] r = a.length >= size ? a : (T[])java.lang.reflect.Array.
+				newInstance(a.getClass().getComponentType(), size);
+		Enumerator<Entry<V,K>> en = enumerator();
+		for (int i = 0; i < r.length; i++) {
+			if (! en.hasMoreElements()) { // fewer elements than expected
+				if (a == r) {
+					r[i] = null; // null-terminate
+				} else if (a.length < i) {
+					return Arrays.copyOf(r, i);
+				} else {
+					System.arraycopy(r, 0, a, 0, i);
+					if (a.length > i) {
+						a[i] = null;
+					}
+				}
+				return a;
+			}
+			r[i] = (T) en.nextElement();
+		}
+		// more elements than expected
+		return en.hasMoreElements() ? finishToArray(r, en) : r;
 	}
-	 /**
-     * Reallocates the array being used within toArray when the iterator
-     * returned more elements than expected, and finishes filling it from
-     * the iterator.
-     * @param r the array, replete with previously stored elements
-     * @param it the in-progress iterator over this collection
-     * @return array containing the elements in the given array, plus any
-     *         further elements returned by the iterator, trimmed to size
-     */
+	/**
+	 * Reallocates the array being used within toArray when the iterator
+	 * returned more elements than expected, and finishes filling it from
+	 * the iterator.
+	 * @param a the array, replete with previously stored elements
+	 * @param it the in-progress iterator over this collection
+	 * @return array containing the elements in the given array, plus any
+	 * further elements returned by the iterator, trimmed to size
+	 */
 	@Deprecated
-    @SuppressWarnings("unchecked")
-    private static <T> T[] finishToArray(T[] r, Enumerator<?> en) {
-        int i = r.length;
-        while (en.hasMoreElements()) {
-            int cap = r.length;
-            if (i == cap) {
-                int newCap = cap + (cap >> 1) + 1;
-                // overflow-conscious code
-                if (newCap - MAX_ARRAY_SIZE > 0)
-                    newCap = hugeCapacity(cap + 1);
-                r = Arrays.copyOf(r, newCap);
-            }
-            r[i++] = (T) en.nextElement();
-        }
-        // trim if overallocated
-        return (i == r.length) ? r : Arrays.copyOf(r, i);
-    }
+	@SuppressWarnings("unchecked")
+	private static <T> T[] finishToArray(T[] a, Enumerator<?> en) {
+		int i = a.length;
+		while (en.hasMoreElements()) {
+			int cap = a.length;
+			if (i == cap) {
+				int newCap = cap + (cap >> 1) + 1;
+				// overflow-conscious code
+				if (newCap - MAX_ARRAY_SIZE > 0)
+					newCap = hugeCapacity(cap + 1);
+				a = Arrays.copyOf(a, newCap);
+			}
+			a[i++] = (T) en.nextElement();
+		}
+		// trim if overallocated
+		return (i == a.length) ? a : Arrays.copyOf(a, i);
+	}
 	@Deprecated
-    private static int hugeCapacity(int minCapacity) {
-        if (minCapacity < 0) // overflow
-            throw new OutOfMemoryError
-                ("Required array size too large");
-        return (minCapacity > MAX_ARRAY_SIZE) ?
-            Integer.MAX_VALUE :
-            MAX_ARRAY_SIZE;
-    }
+	private static int hugeCapacity(int minCapacity) {
+		if (minCapacity < 0) // overflow
+			throw new OutOfMemoryError
+			("Required array size too large");
+		return (minCapacity > MAX_ARRAY_SIZE) ?
+				Integer.MAX_VALUE :
+					MAX_ARRAY_SIZE;
+	}
 }
