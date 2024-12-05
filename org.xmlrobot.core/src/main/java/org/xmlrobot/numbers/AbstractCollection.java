@@ -34,6 +34,11 @@ public abstract class AbstractCollection<E>
 	}
 
 	@Override
+	public void clear() {
+		setElement(getParent().getElement());
+		super.clear();
+	}
+	@Override
 	public boolean contains(Object o) {
 		Objects.requireNonNull(o);
 		Iterator<E> en = iterator();
@@ -43,8 +48,12 @@ public abstract class AbstractCollection<E>
         return false;
 	}
 	@Override
+	public boolean isEmpty() {
+		return getParent() == this;
+	}
+	@Override
 	public Iterator<E> iterator() {
-		return new ParentIterator(getParent());
+		return new ElementIterator(getParent());
 	}
 	@Override
 	public boolean add(E e) {
@@ -53,7 +62,7 @@ public abstract class AbstractCollection<E>
 			setElement(e);
 			return true;
 		}
-		return create(getClass(), getParent(), e) != null;
+		return create(getClass(), this, e) != null;
 	}
 	@Override
 	public boolean remove(Object o) {
@@ -111,12 +120,8 @@ public abstract class AbstractCollection<E>
 		}
 		return modified;
 	}
-	@Override
-	public void clear() {
-		release();
-	}
 	
-	protected final class ParentIterator implements Iterator<E> {
+	protected final class ElementIterator implements Iterator<E> {
 		
 		/**
 		 * The current collection.
@@ -126,86 +131,37 @@ public abstract class AbstractCollection<E>
 		/**
 		 * The next collection.
 		 */
-		private Collection<E> next;
+		private Collection<E> parent;
 		
 		/**
 		 * If this iterator has next collection.
 		 */
-		private boolean hasNext;
+		private boolean hasParent;
 		
-		public ParentIterator(Collection<E> c) {
-			next = current = c;
-			hasNext = true;
+		public ElementIterator(Collection<E> c) {
+			parent = current = c;
+			hasParent = true;
 		}
 		@Override
 		public boolean hasNext() {
-			return hasNext;
+			return hasParent;
 		}
 		@Override
 		public E next() {
-			Collection<E> c = next;
-			current = c;
-			next = c.getParent();
-			if(c == AbstractCollection.this)
-				hasNext = false;
-			else hasNext = true;
-			return c.getElement();
+			current = parent;
+			parent = parent.getParent();
+			if(current == AbstractCollection.this)
+				hasParent = false;
+			else hasParent = true;
+			return current.getElement();
 		}
 		@Override
 		public void remove() {
-			Collection<E> c = next;
-			current.release();
-			if (!c.isEmpty()) {
-				current = c;
-				next = c.getParent();
+			current.clear();
+			if (!current.isEmpty()) {
+				parent = current.getParent();
 			} else
-				hasNext = false;
-		}
-	}
-	protected final class PastIterator implements Iterator<E> {
-		
-		/**
-		 * The current collection.
-		 */
-		private Collection<E> current;
-		
-		/**
-		 * The next collection.
-		 */
-		private Collection<E> next;
-		
-		/**
-		 * If this iterator has next collection.
-		 */
-		private boolean hasNext;
-		
-		public PastIterator(Collection<E> c) {
-			next = current = c;
-			hasNext = true;
-		}
-		@Override
-		public boolean hasNext() {
-			return hasNext;
-		}
-		@Override
-		public E next() {
-			Collection<E> c = next;
-			current = c;
-			next = c.call();
-			if(c == AbstractCollection.this)
-				hasNext = false;
-			else hasNext = true;
-			return c.getElement();
-		}
-		@Override
-		public void remove() {
-			Collection<E> c = next;
-			current.release();
-			if (!c.isEmpty()) {
-				current = c;
-				next = c.call();
-			} else
-				hasNext = false;
+				hasParent = false;
 		}
 	}
 	@Deprecated

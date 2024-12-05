@@ -9,7 +9,7 @@ import org.xmlrobot.genesis.Chain;
 import org.xmlrobot.numbers.Enumerator;
 
 public abstract class Child<V,K>
-	extends Order<V,K> implements Chain<V,K> {
+	extends Hyperspace<V,K> implements Chain<V,K> {
 
 	private static final long serialVersionUID = 7345791483077375936L;
 	public static final int MAX_ARRAY_SIZE = 2147483647;
@@ -54,11 +54,8 @@ public abstract class Child<V,K>
 			}
 		};
 	}
-	public void clear() {
-		release();
-	}
 	@Override
-	public boolean contains(Object o) {
+	public boolean contains(java.lang.Object o) {
 		Objects.requireNonNull(o);
 		Enumerator<Entry<V,K>> en = enumerator();
 		while (en.hasMoreElements())
@@ -73,7 +70,7 @@ public abstract class Child<V,K>
 		return true;
 	}
 	@Override
-	public boolean remove(Object o) {
+	public boolean remove(java.lang.Object o) {
 		Objects.requireNonNull(o);
 		Enumerator<Entry<V,K>> en = enumerator();
 		while (en.hasMoreElements()) {
@@ -86,7 +83,7 @@ public abstract class Child<V,K>
 	}
 	@Override
 	public boolean containsAll(Collection<?> c) {
-		for (Object o : c)
+		for (java.lang.Object o : c)
 			if (!contains(o))
 				return false;
 		return true;
@@ -137,9 +134,9 @@ public abstract class Child<V,K>
 		return i;
 	}
 	@Deprecated
-	public Object[] toArray() {
+	public java.lang.Object[] toArray() {
 		// Estimate size of array; be prepared to see more or fewer elements
-		Object[] r = new Object[size()];
+		java.lang.Object[] r = new java.lang.Object[size()];
 		Enumerator<Entry<V,K>> en = enumerator();
 		for (int i = 0; i < r.length; i++) {
 			if (!en.hasMoreElements()) // fewer elements than expected
@@ -205,10 +202,7 @@ public abstract class Child<V,K>
 	@Deprecated
 	private static int hugeCapacity(int minCapacity) {
 		if (minCapacity < 0) // overflow
-			throw new OutOfMemoryError
-			("Required array size too large");
-		return (minCapacity > MAX_ARRAY_SIZE) ?
-				Integer.MAX_VALUE :
-					MAX_ARRAY_SIZE;
+			throw new OutOfMemoryError("Required array size too large");
+		return (minCapacity > MAX_ARRAY_SIZE) ? Integer.MAX_VALUE : MAX_ARRAY_SIZE;
 	}
 }

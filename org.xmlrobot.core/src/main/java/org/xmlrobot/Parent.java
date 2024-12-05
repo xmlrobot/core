@@ -8,7 +8,8 @@ import org.xmlrobot.genesis.DNA;
 import org.xmlrobot.numbers.Enumerator;
 
 public abstract class Parent<K,V>
-	extends Order<K,V> implements DNA<K,V> {
+	extends Hyperspace<K,V> implements DNA<K,V> {
+	
 	private static final long serialVersionUID = 3114549892332588729L;
 	
 	public Parent() {
@@ -34,7 +35,7 @@ public abstract class Parent<K,V>
 	}
 	
 	@Override
-	public V get(Object key) {
+	public V get(K key) {
     	return getValue(key);
     }
 	@Override
@@ -47,28 +48,24 @@ public abstract class Parent<K,V>
     }
 	@Override
 	public void putAll(java.util.Map<? extends K,? extends V> m) {
-    	for (Entry<? extends K, ? extends V> e : m.entrySet())
+    	for (java.util.Map.Entry<? extends K, ? extends V> e : m.entrySet())
             put(e.getKey(), e.getValue());
     }
 	@Override
-	public V remove(Object key) {
-		Enumerator<org.xmlrobot.Entry<K,V>> en = enumerator();
-		org.xmlrobot.Entry<K, V> correctEntry = null;
-		while (correctEntry == null && en.hasMoreElements()) {
-			org.xmlrobot.Entry<K,V> e = en.nextElement();
+	public V remove(K key) {
+		Enumerator<org.xmlrobot.Entry<K,V>> enumerator = enumerator();
+		org.xmlrobot.Entry<K,V> entry = null;
+		while (entry == null && enumerator.hasMoreElements()) {
+			org.xmlrobot.Entry<K,V> e = enumerator.nextElement();
 			if (key.equals(e.getKey()))
-				correctEntry = e;
+				entry = e;
 		}
 		V oldValue = null;
-		if (correctEntry != null) {
-			oldValue = correctEntry.getValue();
-			correctEntry.release();
+		if (entry != null) {
+			oldValue = entry.getValue();
+			entry.clear();
 		}
 		return oldValue;
-	}
-	@Override
-	public void clear() {
-		release();
 	}
 	
 	transient Set<K> keySet;
@@ -79,7 +76,7 @@ public abstract class Parent<K,V>
 		return keySet == null ? keySet = new java.util.AbstractSet<K>() {
 			@Override
 			public Iterator<K> iterator() {
-				return new KeyIterator(getParent());
+				return new KeyIterator(enumerator());
 			}
 			@Deprecated
 			public int size() {
@@ -91,16 +88,14 @@ public abstract class Parent<K,V>
             public void clear() {
             	Parent.this.clear();
             }
-            public boolean contains(Object k) {
-                return Parent.this.containsKey(k);
-            }
 		} : keySet;
 	}
 	public Collection<V> values() {
 		return values == null ? values = new java.util.AbstractCollection<V>() {
 			public Iterator<V> iterator() {
-				return new ValueIterator(getParent());
+				return new ValueIterator(enumerator());
             }
+			@Deprecated
             public int size() {
                 return Parent.this.size();
             }
@@ -110,15 +105,12 @@ public abstract class Parent<K,V>
             public void clear() {
             	Parent.this.clear();
             }
-            public boolean contains(Object v) {
-                return Parent.this.containsValue(v);
-            }
 		}: values;
 	}
-	public Set<Entry<K,V>> entrySet() {
+	public Set<org.xmlrobot.Entry<K,V>> entrySet() {
 		return entrySet == null ? entrySet = new java.util.AbstractSet<Entry<K,V>>() {
 			@Override
-			public Iterator<Entry<K, V>> iterator() {
+			public Iterator<Entry<K,V>> iterator() {
 				return new Iterator<Entry<K,V>>() {
 					private Enumerator<org.xmlrobot.Entry<K,V>> en = Parent.this.enumerator();
 					@Override
@@ -126,7 +118,7 @@ public abstract class Parent<K,V>
 						return en.hasMoreElements();
 					}
 					@Override
-					public java.util.Map.Entry<K,V> next() {
+					public org.xmlrobot.Entry<K,V> next() {
 						return en.nextElement();
 					}
 					@Override
@@ -145,105 +137,48 @@ public abstract class Parent<K,V>
             public void clear() {
             	Parent.this.clear();
             }
-            public boolean contains(Object k) {
-                return Parent.this.containsKey(k);
-            }
 		}: entrySet;
 	}
 	protected class KeyIterator implements Iterator<K> {
+		
+		private Enumerator<org.xmlrobot.Entry<K,V>> enumerator;
 
-		/**
-		 * The current entry.
-		 */
-		org.xmlrobot.Entry<K,V> current;
-
-		/**
-		 * The next entry.
-		 */
-		org.xmlrobot.Entry<K,V> next;
-
-		/**
-		 * If this recursor has next entry.
-		 */
-		boolean hasNext;
-
-		public KeyIterator(org.xmlrobot.Entry<K,V> parent) {
-			next = current = parent;
-			hasNext = true;
+		KeyIterator(Enumerator<org.xmlrobot.Entry<K,V>> enumerator) {
+			this.enumerator = enumerator;
 		}
 
 		@Override
 		public boolean hasNext() {
-			return hasNext;
+			return enumerator.hasMoreElements();
 		}
 		@Override
 		public K next() {
-			org.xmlrobot.Entry<K,V> entry = next;
-			current = entry;
-			next = entry.getParent();
-			if (entry == Parent.this)
-				hasNext = false;
-			else
-				hasNext = true;
-			return entry.getKey();
+			return enumerator.nextElement().getKey();
 		}
 		@Override
 		public void remove() {
-			org.xmlrobot.Entry<K,V> entry = next;
-			current.release();
-			if (!entry.isEmpty()) {
-				current = entry;
-				next = entry.getParent();
-			} else
-				hasNext = false;
+			enumerator.remove();
 		}
 	}
-	protected class ValueIterator implements Iterator<V> {
+	private class ValueIterator implements Iterator<V> {
+		
+		private Enumerator<org.xmlrobot.Entry<K,V>> enumerator;
 
-		/**
-		 * The current entry.
-		 */
-		org.xmlrobot.Entry<K,V> current;
-
-		/**
-		 * The next entry.
-		 */
-		org.xmlrobot.Entry<K,V> next;
-
-		/**
-		 * If this recursor has next entry.
-		 */
-		boolean hasNext;
-
-		public ValueIterator(org.xmlrobot.Entry<K,V> parent) {
-			next = current = parent;
-			hasNext = true;
+		ValueIterator(Enumerator<org.xmlrobot.Entry<K,V>> enumerator) {
+			this.enumerator = enumerator;
 		}
 
 		@Override
 		public boolean hasNext() {
-			return hasNext;
+			return enumerator.hasMoreElements();
 		}
 		@Override
 		public V next() {
-			org.xmlrobot.Entry<K,V> entry = next;
-			current = entry;
-			next = entry.getParent();
-			if (entry == Parent.this)
-				hasNext = false;
-			else
-				hasNext = true;
-			return entry.getValue();
+			return enumerator.nextElement().getValue();
 		}
 		@Override
 		public void remove() {
-			org.xmlrobot.Entry<K,V> entry = next;
-			current.release();
-			if (!entry.isEmpty()) {
-				current = entry;
-				next = entry.getParent();
-			} else
-				hasNext = false;
+			enumerator.remove();
 		}
 	}
 	@Deprecated
